@@ -329,7 +329,7 @@ def glm4v_attn_forward(
     )  # (batch_size, seq_length / sp_size, num_head, head_size)
     attn_output = attn_output.reshape(bsz, q_len, self.hidden_size).contiguous()
     attn_output = self.o_proj(attn_output)
-    return attn_output, None
+    return attn_output, None, None
 
 
 def _get_input_embeds(
