@@ -597,6 +597,8 @@ class AgentLoopWorker:
                     second_per_grid_ts=second_per_grid_ts,
                     attention_mask=attention_mask.squeeze(0),
                 ).unsqueeze(0)  # (1, 3, seq_len)
+                # Qwen 2.5 VL expects 4d position ids with the input ids concatenated
+                position_ids = torch.cat([input_ids.unsqueeze(0), position_ids], dim=1)
             else:
                 position_ids = compute_position_id_with_mask(attention_mask)  # (1, seq_len)
             enable_async_reward = (
