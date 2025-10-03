@@ -228,6 +228,9 @@ def _custom_flash_attention_forward(
     )
 
     if position_ids is not None:
+        if position_ids.ndim == 3:
+            # For GLM's 3D mRoPE, use the first dimension (temporal) for varlen logic
+            position_ids = position_ids[0]  # (batch_size, seq_length)
         assert position_ids.ndim == 2  # (batch_size, seq_length / sp_size)
 
     sp_size = get_ulysses_sequence_parallel_world_size()
@@ -396,7 +399,10 @@ def process_position_ids(position_ids: torch.Tensor) -> torch.Tensor:
         # see https://github.com/huggingface/transformers/pull/39447
         raise ValueError("position_ids should be a 3D tensor of shape (4, batch_size, seq_length).")
 
-    return position_ids
+    # GLM uses 3D mRoPE (temporal, height, width), drop the text position dimension
+    # Input: (4, batch_size, seq_length) -> [text_pos, temporal, height, width]
+    # Output: (3, batch_size, seq_length) -> [temporal, height, width]
+    return position_ids[1:, :, :]
 
 
 @dataclass
